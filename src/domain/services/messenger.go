@@ -1,7 +1,7 @@
 package domain
 
 import (
-	provider "p2p-messenger/src/domain/providerinterfaces"
+	provider "p2p-messenger/src/domain/provider_interfaces"
 )
 
 type Messenger struct {
@@ -18,11 +18,21 @@ func NewMessenger(NetworkProvider provider.NetworkProvider, UIProvider provider.
 func (m *Messenger) Run() {
 	go m.networkProvider.Run()
 	go m.readIncomingMessages()
+	go m.readOutgoingMessages()
+
+	// todo fyne не может работать вне главного потока
+	// этот вызов нарушает логическую изоляцию
 	m.uiProvider.Run()
 }
 
-func (m *Messenger) readIncomingMessages(){
-	for message := range m.networkProvider.GetNewIncomingMessages(){
+func (m *Messenger) readIncomingMessages() {
+	for message := range m.networkProvider.GetNewIncomingMessages() {
 		m.uiProvider.ShowNemIncomingMessage(message)
+	}
+}
+
+func (m *Messenger) readOutgoingMessages() {
+	for message := range m.uiProvider.GetNewOutgoingMessages() {
+		m.networkProvider.SendMessage(message)
 	}
 }
