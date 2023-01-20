@@ -116,7 +116,13 @@ func (p *FyneUIProvider) GetNewContacts() <-chan entities.Contact {
 }
 
 func (p *FyneUIProvider) ShowNewContact(contact entities.Contact) { 
-	contactLabel := widget.NewButton(contact.UserId[:8] + "..." + contact.UserId[:5], func() {
+	var buttonText = ""
+	if(len(contact.UserId) < 13){
+		buttonText = contact.UserId
+	} else{
+		buttonText = contact.UserId[:8] + "..." + contact.UserId[:5]
+	}
+	contactLabel := widget.NewButton(buttonText , func() {
 		p.chosenContact = contact
 		p.chatHistory.SetText("")
 	})
