@@ -12,6 +12,8 @@ import (
 	"golang.design/x/clipboard"
 )
 
+const userIdPrefix = "Your user id: "
+
 type FyneUIProvider struct {
 	chatHistory             *widget.Label
 	userIdPlace             *widget.Label
@@ -45,7 +47,7 @@ func (p *FyneUIProvider) Run() {
 	if err != nil {
 		panic(err)
 	}
-	copyUserIdButton := widget.NewButton("Copy", func() { clipboard.Write(clipboard.FmtText, []byte(p.userIdPlace.Text)) })
+	copyUserIdButton := widget.NewButton("Copy", func() { clipboard.Write(clipboard.FmtText, []byte(p.userIdPlace.Text[len(userIdPrefix):])) })
 	userIdContainer := container.NewBorder(nil, nil, nil, copyUserIdButton, p.userIdPlace)
 	chatContainer := container.NewBorder(userIdContainer, messageEntryContainer, nil, nil, textScroller)
 	content := container.NewBorder(nil, nil, left, nil, chatContainer)
@@ -63,5 +65,5 @@ func (p *FyneUIProvider) GetNewOutgoingMessages() <-chan entities.Message {
 }
 
 func (p *FyneUIProvider) ShowUserId(userId string) {
-	p.userIdPlace.SetText("Your user id: " + userId)
+	p.userIdPlace.SetText(userIdPrefix + userId)
 }
