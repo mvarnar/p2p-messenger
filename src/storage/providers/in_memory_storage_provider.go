@@ -9,7 +9,7 @@ type InMemoryStorageProvider struct {
 }
 
 func NewInMemoryStorageProvider() InMemoryStorageProvider {
-	return InMemoryStorageProvider{contacts: make([]entites.Contact, 100)}
+	return InMemoryStorageProvider{contacts: make([]entites.Contact, 0)}
 }
 
 func (p *InMemoryStorageProvider) GetContacts() []entites.Contact {

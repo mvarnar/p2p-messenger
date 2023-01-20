@@ -52,9 +52,9 @@ func (p *FyneUIProvider) buildChatContainer() *fyne.Container {
 	messageEntry := widget.NewMultiLineEntry()
 	sendMessageButton := widget.NewButton("Send", func() {
 		p.outgoingMessagesChannel <- entities.Message{
-			Text: messageEntry.Text, 
-			ReceiverContact: p.chosenContact, 
-			SenderContact: entities.Contact{UserId: p.userId},
+			Text:            messageEntry.Text,
+			ReceiverContact: p.chosenContact,
+			SenderContact:   entities.Contact{UserId: p.userId},
 		}
 		p.chatHistory.SetText(p.chatHistory.Text + "\n<<< " + messageEntry.Text)
 		p.chatHistory.Refresh()
@@ -115,14 +115,14 @@ func (p *FyneUIProvider) GetNewContacts() <-chan entities.Contact {
 	return p.newContactChannel
 }
 
-func (p *FyneUIProvider) ShowNewContact(contact entities.Contact) { 
+func (p *FyneUIProvider) ShowNewContact(contact entities.Contact) {
 	var buttonText = ""
-	if(len(contact.UserId) < 13){
+	if len(contact.UserId) < 13 {
 		buttonText = contact.UserId
-	} else{
-		buttonText = contact.UserId[:8] + "..." + contact.UserId[:5]
+	} else {
+		buttonText = contact.UserId[:8] + "..." + contact.UserId[len(contact.UserId)-5:]
 	}
-	contactLabel := widget.NewButton(buttonText , func() {
+	contactLabel := widget.NewButton(buttonText, func() {
 		p.chosenContact = contact
 		p.chatHistory.SetText("")
 	})
