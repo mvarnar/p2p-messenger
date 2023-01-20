@@ -7,5 +7,6 @@ import (
 type UIProvider interface {
 	GetNewOutgoingMessages() <-chan domain.Message
 	ShowNemIncomingMessage(message domain.Message)
+	ShowUserId(userId string)
 	Run()
 }

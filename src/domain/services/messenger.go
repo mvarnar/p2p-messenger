@@ -19,6 +19,7 @@ func (m *Messenger) Run() {
 	go m.networkProvider.Run()
 	go m.readIncomingMessages()
 	go m.readOutgoingMessages()
+	go m.GetUserId()
 
 	// todo fyne не может работать вне главного потока
 	// этот вызов нарушает логическую изоляцию
@@ -35,4 +36,9 @@ func (m *Messenger) readOutgoingMessages() {
 	for message := range m.uiProvider.GetNewOutgoingMessages() {
 		m.networkProvider.SendMessage(message)
 	}
+}
+
+func (m *Messenger) GetUserId() {
+	userId := m.networkProvider.GetUserId()
+	m.uiProvider.ShowUserId(userId)
 }

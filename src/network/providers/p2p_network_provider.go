@@ -6,8 +6,10 @@ import (
 	"fmt"
 	entities "p2p-messenger/src/domain/entities"
 	"sync"
+	"time"
 
 	"github.com/libp2p/go-libp2p"
+	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p/core/protocol"
@@ -25,6 +27,7 @@ type P2PNetworkProvider struct {
 	config          Config
 	messagesChannel chan entities.Message
 	readWriter      *bufio.ReadWriter
+	host            host.Host
 }
 
 func NewP2PNetworkProvider(Logger *log.ZapEventLogger, Config Config) P2PNetworkProvider {
@@ -48,24 +51,32 @@ func (p *P2PNetworkProvider) SendMessage(message entities.Message) {
 	}
 }
 
+func (p *P2PNetworkProvider) GetUserId() string {
+	for p.host == nil {
+		time.Sleep(1 * time.Second)
+	}
+	return p.host.ID().String()
+}
+
 func (p *P2PNetworkProvider) Run() {
-	host, err := libp2p.New(libp2p.ListenAddrs([]maddr.Multiaddr(p.config.ListenAddresses)...))
+	var err error
+	p.host, err = libp2p.New(libp2p.ListenAddrs([]maddr.Multiaddr(p.config.ListenAddresses)...))
 	if err != nil {
 		panic(err)
 	}
-	p.logger.Info("Host created. We are:", host.ID())
-	p.logger.Info(host.Addrs())
+	p.logger.Info("Host created. We are:", p.host.ID())
+	p.logger.Info(p.host.Addrs())
 
 	// Set a function as stream handler. This function is called when a peer
 	// initiates a connection and starts a stream with this peer.
-	host.SetStreamHandler(protocol.ID(p.config.ProtocolID), p.handleStream)
+	p.host.SetStreamHandler(protocol.ID(p.config.ProtocolID), p.handleStream)
 
 	// Start a DHT, for use in peer discovery. We can't just make a new DHT
 	// client because we want each peer to maintain its own local copy of the
 	// DHT, so that the bootstrapping node of the DHT can go down without
 	// inhibiting future peer discovery.
 	ctx := context.Background()
-	kademliaDHT, err := dht.New(ctx, host)
+	kademliaDHT, err := dht.New(ctx, p.host)
 	if err != nil {
 		panic(err)
 	}
@@ -85,7 +96,7 @@ func (p *P2PNetworkProvider) Run() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			if err := host.Connect(ctx, *peerinfo); err != nil {
+			if err := p.host.Connect(ctx, *peerinfo); err != nil {
 				p.logger.Warning(err)
 			} else {
 				p.logger.Info("Connection established with bootstrap node:", *peerinfo)
@@ -110,13 +121,13 @@ func (p *P2PNetworkProvider) Run() {
 	}
 
 	for peer := range peerChan {
-		if peer.ID == host.ID() {
+		if peer.ID == p.host.ID() {
 			continue
 		}
 		p.logger.Debug("Found peer:", peer)
 
 		p.logger.Debug("Connecting to:", peer)
-		stream, err := host.NewStream(ctx, peer.ID, protocol.ID(p.config.ProtocolID))
+		stream, err := p.host.NewStream(ctx, peer.ID, protocol.ID(p.config.ProtocolID))
 
 		if err != nil {
 			p.logger.Warning("Connection failed:", err)

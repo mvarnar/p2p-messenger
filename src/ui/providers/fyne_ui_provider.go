@@ -9,10 +9,12 @@ import (
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
+	"golang.design/x/clipboard"
 )
 
 type FyneUIProvider struct {
 	chatHistory             *widget.Label
+	userIdPlace             *widget.Label
 	outgoingMessagesChannel chan entities.Message
 }
 
@@ -38,7 +40,14 @@ func (p *FyneUIProvider) Run() {
 	})
 	textScroller := container.NewVScroll(p.chatHistory)
 	messageEntryContainer := container.NewBorder(nil, nil, nil, sendMessageButton, messageEntry)
-	chatContainer := container.NewBorder(nil, messageEntryContainer, nil, nil, textScroller)
+	p.userIdPlace = widget.NewLabelWithStyle("Connecting to the network", fyne.TextAlignCenter, fyne.TextStyle{Monospace: true})
+	err := clipboard.Init()
+	if err != nil {
+		panic(err)
+	}
+	copyUserIdButton := widget.NewButton("Copy", func() { clipboard.Write(clipboard.FmtText, []byte(p.userIdPlace.Text)) })
+	userIdContainer := container.NewBorder(nil, nil, nil, copyUserIdButton, p.userIdPlace)
+	chatContainer := container.NewBorder(userIdContainer, messageEntryContainer, nil, nil, textScroller)
 	content := container.NewBorder(nil, nil, left, nil, chatContainer)
 
 	myWindow.SetContent(content)
@@ -51,4 +60,8 @@ func (p *FyneUIProvider) ShowNemIncomingMessage(message entities.Message) {
 
 func (p *FyneUIProvider) GetNewOutgoingMessages() <-chan entities.Message {
 	return p.outgoingMessagesChannel
+}
+
+func (p *FyneUIProvider) ShowUserId(userId string) {
+	p.userIdPlace.SetText("Your user id: " + userId)
 }
