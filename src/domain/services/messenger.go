@@ -6,15 +6,18 @@ import (
 )
 
 type Messenger struct {
-	networkProvider   provider.NetworkProvider
-	uiProvider        provider.UIProvider
-	storageProvider   provider.StorageProvider
+	networkProvider provider.NetworkProvider
+	uiProvider      provider.UIProvider
+	storageProvider provider.StorageProvider
 }
 type F struct {
 }
 
-func NewMessenger(NetworkProvider provider.NetworkProvider, UIProvider provider.UIProvider) Messenger {
-	return Messenger{networkProvider: NetworkProvider, uiProvider: UIProvider}
+func NewMessenger(
+	NetworkProvider provider.NetworkProvider,
+	UIProvider provider.UIProvider,
+	StorageProvider provider.StorageProvider) Messenger {
+	return Messenger{networkProvider: NetworkProvider, uiProvider: UIProvider, storageProvider: StorageProvider}
 }
 
 func (m *Messenger) Run() {

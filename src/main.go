@@ -4,6 +4,8 @@ import (
 	domain "p2p-messenger/src/domain/services"
 	network "p2p-messenger/src/network/providers"
 	ui "p2p-messenger/src/ui/providers"
+	storage "p2p-messenger/src/storage/providers"
+
 
 	"flag"
 
@@ -22,6 +24,7 @@ func main() {
 
 	networkProvider := network.NewP2PNetworkProvider(logger, config)
 	uiProvider := ui.NewFyneUIProvider()
-	m := domain.NewMessenger(&networkProvider, &uiProvider)
+	storageProvider := storage.NewInMemoryStorageProvider()
+	m := domain.NewMessenger(&networkProvider, &uiProvider, &storageProvider)
 	m.Run()
 }
