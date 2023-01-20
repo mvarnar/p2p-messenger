@@ -5,8 +5,8 @@ import (
 )
 
 type Message struct{
-	SenderId string
-	ReceiverId string
+	SenderContact Contact
+	ReceiverContact Contact
 	Text string
 	SentDatetime time.Time
 }
