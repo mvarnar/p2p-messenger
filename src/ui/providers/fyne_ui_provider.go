@@ -20,6 +20,8 @@ type FyneUIProvider struct {
 	contactsContainer       *fyne.Container
 	chosenContact           entities.Contact
 	userId                  string
+	chosenContactButton     *widget.Button
+	sendMessageButton       *widget.Button
 }
 
 func NewFyneUIProvider() FyneUIProvider {
@@ -50,7 +52,7 @@ func (p *FyneUIProvider) buildChatContainer() *fyne.Container {
 	textScroller := container.NewVScroll(p.chatHistory)
 
 	messageEntry := widget.NewMultiLineEntry()
-	sendMessageButton := widget.NewButton("Send", func() {
+	p.sendMessageButton = widget.NewButton("Send", func() {
 		p.outgoingMessagesChannel <- entities.Message{
 			Text:            messageEntry.Text,
 			ReceiverContact: p.chosenContact,
@@ -60,8 +62,9 @@ func (p *FyneUIProvider) buildChatContainer() *fyne.Container {
 		p.chatHistory.Refresh()
 		messageEntry.SetText("")
 	})
+	p.sendMessageButton.Disable()
 
-	messageEntryContainer := container.NewBorder(nil, nil, nil, sendMessageButton, messageEntry)
+	messageEntryContainer := container.NewBorder(nil, nil, nil, p.sendMessageButton, messageEntry)
 
 	p.userIdPlace = widget.NewLabelWithStyle("Connecting to the network", fyne.TextAlignCenter, fyne.TextStyle{Monospace: true})
 	err := clipboard.Init()
@@ -122,11 +125,19 @@ func (p *FyneUIProvider) ShowNewContact(contact entities.Contact) {
 	} else {
 		buttonText = contact.UserId[:8] + "..." + contact.UserId[len(contact.UserId)-5:]
 	}
-	contactLabel := widget.NewButton(buttonText, func() {
+	var contactLabel *widget.Button
+	contactLabel = widget.NewButton(buttonText, func() {
+		if p.chosenContactButton != nil {
+			p.chosenContactButton.Enable()
+		}
+		if (p.sendMessageButton != nil && p.sendMessageButton.Disabled()){
+			p.sendMessageButton.Enable()
+		}
+		p.chosenContactButton = contactLabel
+		p.chosenContactButton.Disable()
 		p.chosenContact = contact
 		p.chatHistory.SetText("")
 	})
-	contactLabel.FocusGained()
 	p.contactsContainer.Add(contactLabel)
 	p.contactsContainer.Refresh()
 }
