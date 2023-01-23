@@ -7,4 +7,6 @@ import (
 type StorageProvider interface {
 	GetContacts() []entites.Contact
 	AddNewContact(contact entites.Contact)
+	SaveUserId(userId string)
+	GetUserId() string
 }

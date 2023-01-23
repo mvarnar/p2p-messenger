@@ -51,8 +51,14 @@ func (m *Messenger) readOutgoingMessages() {
 }
 
 func (m *Messenger) getUserId() {
-	userId := m.networkProvider.GetUserId()
+	userId := m.storageProvider.GetUserId()
+	if userId == "" {
+		userId = m.networkProvider.GetUserId()
+	}
+
 	m.uiProvider.ShowUserId(userId)
+	m.storageProvider.SaveUserId(userId)
+
 }
 
 func (m *Messenger) readNewContacts() {
@@ -61,8 +67,8 @@ func (m *Messenger) readNewContacts() {
 		m.storageProvider.AddNewContact(contact)
 	}
 }
-func (m *Messenger) showContacts(){
-	for _, contact := range m.storageProvider.GetContacts(){
+func (m *Messenger) showContacts() {
+	for _, contact := range m.storageProvider.GetContacts() {
 		m.uiProvider.ShowNewContact(contact)
 	}
 }
