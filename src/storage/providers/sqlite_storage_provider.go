@@ -12,7 +12,7 @@ type SQLiteStorageProvider struct {
 	db *sql.DB
 }
 
-func NewSQLiteStorageProvider() SQLiteStorageProvider {
+func NewSQLiteStorageProvider() *SQLiteStorageProvider {
 	db, err := sql.Open("sqlite3", "./database.db")
 	if err != nil {
 		panic(err)
@@ -27,7 +27,7 @@ func NewSQLiteStorageProvider() SQLiteStorageProvider {
 		panic(fmt.Sprintf("%q: %s\n", err, sqlStmt))
 	}
 
-	return SQLiteStorageProvider{db: db}
+	return &SQLiteStorageProvider{db: db}
 }
 
 func (p *SQLiteStorageProvider) GetContacts() []entites.Contact {

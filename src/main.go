@@ -21,6 +21,6 @@ func main() {
 	networkProvider := network.NewP2PNetworkProvider(config)
 	uiProvider := ui.NewFyneUIProvider()
 	storageProvider := storage.NewSQLiteStorageProvider()
-	m := domain.NewMessenger(&networkProvider, &uiProvider, &storageProvider)
+	m := domain.NewMessenger(networkProvider, uiProvider, storageProvider)
 	m.Run()
 }

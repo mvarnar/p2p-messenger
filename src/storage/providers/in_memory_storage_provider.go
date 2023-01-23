@@ -8,8 +8,8 @@ type InMemoryStorageProvider struct {
 	contacts []entites.Contact
 }
 
-func NewInMemoryStorageProvider() InMemoryStorageProvider {
-	return InMemoryStorageProvider{contacts: make([]entites.Contact, 0)}
+func NewInMemoryStorageProvider() *InMemoryStorageProvider {
+	return &InMemoryStorageProvider{contacts: make([]entites.Contact, 0)}
 }
 
 func (p *InMemoryStorageProvider) GetContacts() []entites.Contact {

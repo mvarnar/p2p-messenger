@@ -28,8 +28,8 @@ type P2PNetworkProvider struct {
 	kademliaDht     *dht.IpfsDHT
 }
 
-func NewP2PNetworkProvider(Config Config) P2PNetworkProvider {
-	return P2PNetworkProvider{
+func NewP2PNetworkProvider(Config Config) *P2PNetworkProvider {
+	return &P2PNetworkProvider{
 		config:          Config,
 		messagesChannel: make(chan entities.Message, 100),
 		readWriters:     make(map[entities.Contact]*bufio.ReadWriter),

@@ -22,16 +22,16 @@ type FyneUIProvider struct {
 	userId                  string
 	chosenContactButton     *widget.Button
 	sendMessageButton       *widget.Button
-	mainWindow            fyne.Window
+	mainWindow              fyne.Window
 }
 
-func NewFyneUIProvider() FyneUIProvider {
+func NewFyneUIProvider() *FyneUIProvider {
 	myApp := app.New()
 	mainWindow := myApp.NewWindow("Messenger")
 	mainWindow.Resize(fyne.NewSize(1024, 768))
 	mainWindow.SetFixedSize(true)
 
-	p := FyneUIProvider{
+	p := &FyneUIProvider{
 		outgoingMessagesChannel: make(chan entities.Message, 100),
 		newContactChannel:       make(chan entities.Contact, 100),
 	}
