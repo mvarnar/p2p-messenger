@@ -9,4 +9,6 @@ type StorageProvider interface {
 	AddNewContact(contact entites.Contact)
 	SaveKeyBytes(keyBytes []byte)
 	GetKeyBytes() []byte
+	GetMessages(receiverUserId string) []entites.Message
+	SaveMessage(message entites.Message)
 }

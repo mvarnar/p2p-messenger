@@ -19,6 +19,7 @@ type FyneUIProvider struct {
 	newContactChannel       chan entities.Contact
 	contactsContainer       *fyne.Container
 	chosenContact           entities.Contact
+	chosenContactsChannel   chan entities.Contact
 	userId                  string
 	chosenContactButton     *widget.Button
 	sendMessageButton       *widget.Button
@@ -34,6 +35,7 @@ func NewFyneUIProvider() *FyneUIProvider {
 	p := &FyneUIProvider{
 		outgoingMessagesChannel: make(chan entities.Message, 100),
 		newContactChannel:       make(chan entities.Contact, 100),
+		chosenContactsChannel:   make(chan entities.Contact, 100),
 	}
 	addNewContactWindow := p.buildAddNewContactWindow(myApp)
 	contactsContainer := p.buildContactsCotainer(addNewContactWindow)
@@ -105,7 +107,9 @@ func (p *FyneUIProvider) buildAddNewContactWindow(myApp fyne.App) fyne.Window {
 }
 
 func (p *FyneUIProvider) ShowNemIncomingMessage(message entities.Message) {
-	p.chatHistory.SetText(p.chatHistory.Text + "\n>>> " + message.Text)
+	if p.chosenContact == message.SenderContact {
+		p.chatHistory.SetText(p.chatHistory.Text + "\n>>> " + message.Text)
+	}
 }
 
 func (p *FyneUIProvider) GetNewOutgoingMessages() <-chan entities.Message {
@@ -139,8 +143,26 @@ func (p *FyneUIProvider) ShowNewContact(contact entities.Contact) {
 		p.chosenContactButton = contactLabel
 		p.chosenContactButton.Disable()
 		p.chosenContact = contact
-		p.chatHistory.SetText("")
+		p.chosenContactsChannel <- contact
 	})
 	p.contactsContainer.Add(contactLabel)
 	p.contactsContainer.Refresh()
+}
+
+func (p *FyneUIProvider) GetChosenContact() <-chan entities.Contact {
+	return p.chosenContactsChannel
+}
+
+func (p *FyneUIProvider) ShowChatHistory(messages []entities.Message) {
+	history := ""
+	prefix := ""
+	for _, message := range messages {
+		if message.SenderContact.UserId == p.userId {
+			prefix = "<<<"
+		} else {
+			prefix = ">>>"
+		}
+		history += prefix + " " + message.Text + "\n"
+	}
+	p.chatHistory.SetText(history)
 }

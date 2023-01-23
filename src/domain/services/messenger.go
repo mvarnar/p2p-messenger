@@ -27,6 +27,7 @@ func (m *Messenger) Run() {
 	go m.readNewContacts()
 	go m.getUserId()
 	go m.showContacts()
+	go m.syncChatHistory()
 
 	// todo fyne не может работать вне главного потока
 	// этот вызов нарушает логическую изоляцию
@@ -40,6 +41,7 @@ func (m *Messenger) readIncomingMessages() {
 			m.uiProvider.ShowNewContact(message.SenderContact)
 			m.storageProvider.AddNewContact(message.SenderContact)
 		}
+		m.storageProvider.SaveMessage(message)
 		m.uiProvider.ShowNemIncomingMessage(message)
 	}
 }
@@ -47,6 +49,7 @@ func (m *Messenger) readIncomingMessages() {
 func (m *Messenger) readOutgoingMessages() {
 	for message := range m.uiProvider.GetNewOutgoingMessages() {
 		m.networkProvider.SendMessage(message)
+		m.storageProvider.SaveMessage(message)
 	}
 }
 
@@ -66,8 +69,15 @@ func (m *Messenger) readNewContacts() {
 		m.storageProvider.AddNewContact(contact)
 	}
 }
+
 func (m *Messenger) showContacts() {
 	for _, contact := range m.storageProvider.GetContacts() {
 		m.uiProvider.ShowNewContact(contact)
+	}
+}
+
+func (m *Messenger) syncChatHistory() {
+	for contact := range m.uiProvider.GetChosenContact() {
+		m.uiProvider.ShowChatHistory(m.storageProvider.GetMessages(contact.UserId))
 	}
 }

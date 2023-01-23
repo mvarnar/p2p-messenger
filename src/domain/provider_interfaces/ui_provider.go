@@ -10,5 +10,7 @@ type UIProvider interface {
 	ShowUserId(userId string)
 	GetNewContacts() <-chan domain.Contact
 	ShowNewContact(domain.Contact)
+	GetChosenContact() <- chan domain.Contact
+	ShowChatHistory([]domain.Message)
 	Run()
 }
