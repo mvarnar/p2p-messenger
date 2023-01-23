@@ -10,6 +10,7 @@ import (
 
 	"github.com/libp2p/go-libp2p"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
+	"github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
@@ -26,6 +27,7 @@ type P2PNetworkProvider struct {
 	host            host.Host
 	readWriters     map[entities.Contact]*bufio.ReadWriter
 	kademliaDht     *dht.IpfsDHT
+	keyBytes        []byte
 }
 
 func NewP2PNetworkProvider(Config Config) *P2PNetworkProvider {
@@ -89,9 +91,24 @@ func (p *P2PNetworkProvider) GetUserId() string {
 	return p.host.ID().String()
 }
 
-func (p *P2PNetworkProvider) Run() {
+func (p *P2PNetworkProvider) Run(keyBytes []byte) {
+	var key crypto.PrivKey
 	var err error
-	p.host, err = libp2p.New(libp2p.ListenAddrs([]maddr.Multiaddr(p.config.ListenAddresses)...))
+	if keyBytes == nil {
+		key, _, err = crypto.GenerateKeyPair(crypto.RSA, 2048)
+	} else {
+		key, err = crypto.UnmarshalPrivateKey(keyBytes)
+	}
+	if err != nil {
+		panic(err)
+	}
+
+	p.keyBytes, err = crypto.MarshalPrivateKey(key)
+	if err != nil {
+		panic(err)
+	}
+
+	p.host, err = libp2p.New(libp2p.ListenAddrs([]maddr.Multiaddr(p.config.ListenAddresses)...), libp2p.Identity(key))
 	if err != nil {
 		panic(err)
 	}
@@ -134,6 +151,13 @@ func (p *P2PNetworkProvider) Run() {
 		}()
 	}
 	wg.Wait()
+}
+
+func (p *P2PNetworkProvider) GetKeyBytes() []byte {
+	for p.host == nil {
+		time.Sleep(1 * time.Second)
+	}
+	return p.keyBytes
 }
 
 func (p *P2PNetworkProvider) handleStream(stream network.Stream) {

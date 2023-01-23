@@ -20,7 +20,7 @@ func NewSQLiteStorageProvider() *SQLiteStorageProvider {
 
 	sqlStmt := `
 	create table if not exists contacts (user_id text not null primary key);
-	create table if not exists user_id (user_id text not null)
+	create table if not exists key (bytes blob not null);
 	`
 	_, err = db.Exec(sqlStmt)
 	if err != nil {
@@ -60,26 +60,26 @@ func (p *SQLiteStorageProvider) AddNewContact(contact entites.Contact) {
 	}
 }
 
-func (p *SQLiteStorageProvider) SaveUserId(userId string) {
-	_, err := p.db.Exec("insert into user_id values ($s)", userId)
+func (p *SQLiteStorageProvider) SaveKeyBytes(keyBytes []byte) {
+	_, err := p.db.Exec("delete from key; insert into key values ($v)", keyBytes)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (p *SQLiteStorageProvider) GetUserId() string {
-	row := p.db.QueryRow("select user_id from user_id limit 1")
+func (p *SQLiteStorageProvider) GetKeyBytes() []byte {
+	row := p.db.QueryRow("select bytes from key limit 1")
 	if row.Err() != nil {
 		panic(row.Err())
 	}
 
-	var userId string
-	err := row.Scan(&userId)
+	var keyBytes []byte
+	err := row.Scan(&keyBytes)
 	if err == sql.ErrNoRows {
-		return ""
+		return nil
 	}
 	if err != nil {
 		panic(err)
 	}
-	return userId
+	return keyBytes
 }

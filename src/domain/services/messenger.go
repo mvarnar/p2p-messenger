@@ -10,8 +10,6 @@ type Messenger struct {
 	uiProvider      provider.UIProvider
 	storageProvider provider.StorageProvider
 }
-type F struct {
-}
 
 func NewMessenger(
 	NetworkProvider provider.NetworkProvider,
@@ -21,7 +19,9 @@ func NewMessenger(
 }
 
 func (m *Messenger) Run() {
-	go m.networkProvider.Run()
+	keyBytes := m.storageProvider.GetKeyBytes()
+	go m.networkProvider.Run(keyBytes)
+	go m.saveKeyBytes()
 	go m.readIncomingMessages()
 	go m.readOutgoingMessages()
 	go m.readNewContacts()
@@ -51,14 +51,13 @@ func (m *Messenger) readOutgoingMessages() {
 }
 
 func (m *Messenger) getUserId() {
-	userId := m.storageProvider.GetUserId()
-	if userId == "" {
-		userId = m.networkProvider.GetUserId()
-	}
-
+	userId := m.networkProvider.GetUserId()
 	m.uiProvider.ShowUserId(userId)
-	m.storageProvider.SaveUserId(userId)
+}
 
+func (m *Messenger) saveKeyBytes() {
+	keyBytes := m.networkProvider.GetKeyBytes()
+	m.storageProvider.SaveKeyBytes(keyBytes)
 }
 
 func (m *Messenger) readNewContacts() {
