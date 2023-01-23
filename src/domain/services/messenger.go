@@ -25,7 +25,8 @@ func (m *Messenger) Run() {
 	go m.readIncomingMessages()
 	go m.readOutgoingMessages()
 	go m.readNewContacts()
-	go m.GetUserId()
+	go m.getUserId()
+	go m.showContacts()
 
 	// todo fyne не может работать вне главного потока
 	// этот вызов нарушает логическую изоляцию
@@ -49,7 +50,7 @@ func (m *Messenger) readOutgoingMessages() {
 	}
 }
 
-func (m *Messenger) GetUserId() {
+func (m *Messenger) getUserId() {
 	userId := m.networkProvider.GetUserId()
 	m.uiProvider.ShowUserId(userId)
 }
@@ -58,5 +59,10 @@ func (m *Messenger) readNewContacts() {
 	for contact := range m.uiProvider.GetNewContacts() {
 		m.uiProvider.ShowNewContact(contact)
 		m.storageProvider.AddNewContact(contact)
+	}
+}
+func (m *Messenger) showContacts(){
+	for _, contact := range m.storageProvider.GetContacts(){
+		m.uiProvider.ShowNewContact(contact)
 	}
 }

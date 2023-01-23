@@ -22,28 +22,31 @@ type FyneUIProvider struct {
 	userId                  string
 	chosenContactButton     *widget.Button
 	sendMessageButton       *widget.Button
+	mainWindow            fyne.Window
 }
 
 func NewFyneUIProvider() FyneUIProvider {
-	return FyneUIProvider{
-		outgoingMessagesChannel: make(chan entities.Message, 100),
-		newContactChannel:       make(chan entities.Contact, 100),
-	}
-}
-
-func (p *FyneUIProvider) Run() {
 	myApp := app.New()
 	mainWindow := myApp.NewWindow("Messenger")
 	mainWindow.Resize(fyne.NewSize(1024, 768))
 	mainWindow.SetFixedSize(true)
 
+	p := FyneUIProvider{
+		outgoingMessagesChannel: make(chan entities.Message, 100),
+		newContactChannel:       make(chan entities.Contact, 100),
+	}
 	addNewContactWindow := p.buildAddNewContactWindow(myApp)
 	contactsContainer := p.buildContactsCotainer(addNewContactWindow)
 	chatContainer := p.buildChatContainer()
 	content := container.NewBorder(nil, nil, contactsContainer, nil, chatContainer)
 
 	mainWindow.SetContent(content)
-	mainWindow.ShowAndRun()
+	p.mainWindow = mainWindow
+	return p
+}
+
+func (p *FyneUIProvider) Run() {
+	p.mainWindow.ShowAndRun()
 }
 
 func (p *FyneUIProvider) buildChatContainer() *fyne.Container {
@@ -130,7 +133,7 @@ func (p *FyneUIProvider) ShowNewContact(contact entities.Contact) {
 		if p.chosenContactButton != nil {
 			p.chosenContactButton.Enable()
 		}
-		if (p.sendMessageButton != nil && p.sendMessageButton.Disabled()){
+		if p.sendMessageButton != nil && p.sendMessageButton.Disabled() {
 			p.sendMessageButton.Enable()
 		}
 		p.chosenContactButton = contactLabel
