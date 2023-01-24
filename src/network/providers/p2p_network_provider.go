@@ -113,6 +113,7 @@ func (p *P2PNetworkProvider) Run(keyBytes []byte) {
 		libp2p.ListenAddrs([]maddr.Multiaddr(p.config.ListenAddresses)...),
 		libp2p.Identity(key),
 		libp2p.Security(libp2ptls.ID, libp2ptls.New),
+		libp2p.EnableHolePunching(),
 	)
 	if err != nil {
 		panic(err)
