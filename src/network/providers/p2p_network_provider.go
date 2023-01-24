@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 
 	maddr "github.com/multiformats/go-multiaddr"
+	"github.com/libp2p/go-libp2p/p2p/security/tls"
 )
 
 type P2PNetworkProvider struct {
@@ -108,7 +109,12 @@ func (p *P2PNetworkProvider) Run(keyBytes []byte) {
 		panic(err)
 	}
 
-	p.host, err = libp2p.New(libp2p.ListenAddrs([]maddr.Multiaddr(p.config.ListenAddresses)...), libp2p.Identity(key))
+	p.host, err = libp2p.New(
+		libp2p.ListenAddrs([]maddr.Multiaddr(p.config.ListenAddresses)...), 
+		libp2p.Identity(key), 
+		libp2p.Security(libp2ptls.ID, libp2ptls.New),
+		
+	)
 	if err != nil {
 		panic(err)
 	}
