@@ -14,6 +14,7 @@ import (
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
+	"github.com/libp2p/go-libp2p/p2p/host/autorelay"
 	"github.com/libp2p/go-libp2p/core/protocol"
 
 	"encoding/json"
@@ -114,6 +115,8 @@ func (p *P2PNetworkProvider) Run(keyBytes []byte) {
 		libp2p.Identity(key),
 		libp2p.Security(libp2ptls.ID, libp2ptls.New),
 		libp2p.EnableHolePunching(),
+		libp2p.EnableNATService(),
+		libp2p.EnableAutoRelay(autorelay.WithStaticRelays(dht.GetDefaultBootstrapPeerAddrInfos())),
 	)
 	if err != nil {
 		panic(err)
