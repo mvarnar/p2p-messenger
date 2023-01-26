@@ -14,11 +14,11 @@ import (
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
+	"github.com/libp2p/go-libp2p/p2p/host/autorelay"
 	"github.com/libp2p/go-libp2p/p2p/protocol/identify"
 
-	"github.com/libp2p/go-libp2p/p2p/host/autorelay"
 	"github.com/libp2p/go-libp2p/core/protocol"
-
+ 
 	"encoding/json"
 
 	libp2ptls "github.com/libp2p/go-libp2p/p2p/security/tls"
