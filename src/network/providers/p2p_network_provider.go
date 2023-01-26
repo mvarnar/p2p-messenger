@@ -14,6 +14,8 @@ import (
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
+	"github.com/libp2p/go-libp2p/p2p/protocol/identify"
+
 	"github.com/libp2p/go-libp2p/p2p/host/autorelay"
 	"github.com/libp2p/go-libp2p/core/protocol"
 
@@ -52,12 +54,14 @@ func (p *P2PNetworkProvider) SendMessage(message entities.Message) {
 			panic(err)
 		}
 
+		var streamErr error
 		for try := 0; try < 5; try++ {
-			_, _ = p.kademliaDht.FindPeer(context.Background(), pid)
-			stream, err := p.host.NewStream(context.Background(), pid, protocol.ID(p.config.ProtocolID))
+			receiverAddrInfo, _ := p.kademliaDht.FindPeer(context.Background(), pid)
+			fmt.Printf("Sending message to %s\n", receiverAddrInfo)
+			stream, streamErr := p.host.NewStream(context.Background(), pid, protocol.ID(p.config.ProtocolID))
 
-			if err != nil {
-				fmt.Println(err)
+			if streamErr != nil {
+				fmt.Println(streamErr)
 			} else {
 				readWriter = bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
 				go p.readData(readWriter)
@@ -67,7 +71,7 @@ func (p *P2PNetworkProvider) SendMessage(message entities.Message) {
 
 			time.Sleep(1000 * time.Millisecond)
 		}
-		if err != nil {
+		if streamErr != nil {
 			panic(err)
 		}
 	}
@@ -109,20 +113,20 @@ func (p *P2PNetworkProvider) Run(keyBytes []byte) {
 	if err != nil {
 		panic(err)
 	}
-
+	identify.ActivationThresh = 1
 	p.host, err = libp2p.New(
 		libp2p.ListenAddrs([]maddr.Multiaddr(p.config.ListenAddresses)...),
 		libp2p.Identity(key),
 		libp2p.Security(libp2ptls.ID, libp2ptls.New),
 		libp2p.EnableHolePunching(),
 		libp2p.EnableNATService(),
+		libp2p.NATPortMap(),
 		libp2p.EnableAutoRelay(autorelay.WithStaticRelays(dht.GetDefaultBootstrapPeerAddrInfos())),
 	)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("Host created. We are:", p.host.ID())
-	fmt.Println(p.host.Addrs())
 
 	// Set a function as stream handler. This function is called when a peer
 	// initiates a connection and starts a stream with this peer.
@@ -160,6 +164,8 @@ func (p *P2PNetworkProvider) Run(keyBytes []byte) {
 		}()
 	}
 	wg.Wait()
+
+	fmt.Println(p.host.Addrs())
 }
 
 func (p *P2PNetworkProvider) GetKeyBytes() []byte {
